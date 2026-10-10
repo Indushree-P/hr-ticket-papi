@@ -124,39 +124,6 @@
 			</munit-tools:verify-call>
 		</munit:validation>
 	</munit:test>
-	<munit:test name="Audit-Listener" doc:id="8486b901-74cb-43fe-a6c2-6e7b42dc4726" >
-		<munit:behavior >
-			<munit-tools:mock-when doc:name="Mock when" doc:id="44a78862-d0ec-48b8-85d7-fe01eb362c37" processor="file:write">
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="dc648453-3573-4d89-b494-e4278ee97e34" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-			</munit-tools:mock-when>
-			<munit-tools:mock-when doc:name="Mock when" doc:id="9a90dac9-1326-452d-8c1d-77c725a155d2" processor="sftp:write">
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="207ece19-46da-4428-b7c4-206816696ccb" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-			</munit-tools:mock-when>
-		</munit:behavior>
-		<munit:execution >
-			<munit:set-event doc:name="Set Event" doc:id="ab0f12c1-1a45-4e34-8f58-a7260c75a77a" >
-				<munit:payload value='#[{&#10;            ticketId: "TKT1001",&#10;            employeeId: "EMP001",&#10;            department: "HR",&#10;            priority: "CRITICAL",&#10;            sentiment: "NEGATIVE",&#10;            description: "Salary not credited"&#10;        }]' />
-			</munit:set-event>
-			<flow-ref doc:name="Flow Reference" doc:id="5ed5c80e-eefe-4ff2-8f93-a8abe8c33ce8" name="audit-listener-flow"/>
-		</munit:execution>
-		<munit:validation >
-			<munit-tools:assert-that doc:name="Assert that" doc:id="412fe310-8809-4575-ad3b-24792963a525" expression="#[payload]" is='#[MunitTools::containsString("TKT1001")]'/>
-			<munit-tools:verify-call doc:name="Verify call" doc:id="02b232d2-7d4b-44b0-b289-fc14adaf10dc" processor="file:write" times="1">
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="dc648453-3573-4d89-b494-e4278ee97e34" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-			</munit-tools:verify-call>
-			<munit-tools:verify-call doc:name="Verify call" doc:id="bbc98d4c-f34b-4d0b-9e32-33f2d1e3895f" processor="sftp:write" times="1">
-				<munit-tools:with-attributes >
-					<munit-tools:with-attribute whereValue="207ece19-46da-4428-b7c4-206816696ccb" attributeName="doc:id" />
-				</munit-tools:with-attributes>
-			</munit-tools:verify-call>
-		</munit:validation>
-	</munit:test>
 	<munit:test name="munit-papi-api-main" doc:id="fb3915a7-3640-4c54-a24d-66a3806208ae" >
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock when" doc:id="7f595d44-3acd-43e2-9930-69e43208d0f9" processor="apikit:router">

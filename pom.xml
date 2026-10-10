@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.mycompany</groupId>
+	<groupId>a800e192-e208-4c3c-9e10-977416e56127</groupId>
 	<artifactId>hr-ticket-papi</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
@@ -32,6 +32,21 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+    				<cloudhub2Deployment>
+        				<uri>https://anypoint.mulesoft.com</uri>
+        				<provider>MC</provider>
+        				<environment>Sandbox</environment>
+        				<target>Cloudhub-US-East-2</target>
+        				<server>anypoint-connected-app</server>
+        				<applicationName>app-hr-ticket-papi</applicationName>
+        				<muleVersion>4.12.2</muleVersion>
+        				<releaseChannel>Edge</releaseChannel>
+        				<replicas>1</replicas>
+        				<vCores>0.1</vCores>
+						<deploymentTimeout>900000</deploymentTimeout>
+					</cloudhub2Deployment>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.mulesoft.munit.tools</groupId>
@@ -162,5 +177,20 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+	<distributionManagement>
+    <repository>
+        <id>anypoint-connected-app</id>
+        <name>Exchange Repository</name>
+        <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+        <layout>default</layout>
+    </repository>
+
+    <snapshotRepository>
+        <id>anypoint-connected-app</id>
+        <name>Exchange Repository Snapshots</name>
+        <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+        <layout>default</layout>
+    </snapshotRepository>
+</distributionManagement>
 
 </project>

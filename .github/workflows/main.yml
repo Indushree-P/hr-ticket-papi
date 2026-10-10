@@ -23,8 +23,20 @@ jobs:
         with:
           maven-version: 3.9.6
 
-      - name: Run MUnit Tests
-        run: mvn clean test -s .maven/settings.xml
+      - name: Build Project
+        run: mvn clean package -DskipTests -s .maven/settings.xml
+        env:
+          CONNECTED_APP_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          CONNECTED_APP_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+
+      - name: Publish To Exchange
+        run: mvn clean deploy -DskipMuleDeploy -DskipTests -s .maven/settings.xml
+        env:
+          CONNECTED_APP_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          CONNECTED_APP_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+
+      - name: Deploy To CloudHub 2.0
+        run: mvn mule:deploy -DskipTests -s .maven/settings.xml
         env:
           CONNECTED_APP_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
           CONNECTED_APP_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}

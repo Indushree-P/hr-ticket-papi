@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="global_error_handler" doc:id="11ae852f-d7f4-4242-82b5-b6268d26cae7" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ea584302-b372-4ddb-805c-455eb164138a" type="APIKIT:BAD_REQUEST" >
+			<set-variable value="#[400]" doc:name="Variable for httpStatus" doc:id="58256538-74f7-4df2-9b2d-3360f1196dc2" variableName="httpStatus"/>
+			<flow-ref doc:name="invoke common error handler" doc:id="4971eb13-4cdb-452f-bff3-0f13e894eb2f" name="common_error_handler"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="50ab0f61-7c06-4a28-a87c-f404c654e6d2" type="APIKIT:NOT_FOUND" >
+			<set-variable value="#[404]" doc:name="Variable for httpStatus" doc:id="b315f2b2-1ccb-46b4-b524-1a51244d1beb" variableName="httpStatus"/>
+			<flow-ref doc:name="invoke common error handler" doc:id="0029b42a-f9bc-4d0e-8e6a-4cfed1bf4d66" name="common_error_handler" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate2" doc:id="520785ef-14f2-4562-8ba5-44e1ac90c46d" type="APIKIT:METHOD_NOT_ALLOWED" >
+			<set-variable value="#[405]" doc:name="Variable for httpStatus" doc:id="8bd0cb48-17f5-4b17-8ee6-2c6e83670adc" variableName="httpStatus"/>
+			<flow-ref doc:name="invoke common error handler" doc:id="e71d3a59-eef6-46c9-aaae-77cbdcbd5019" name="common_error_handler" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate3" doc:id="773ac77f-3822-4d78-b1e9-5c839dc24790" type="APIKIT:NOT_ACCEPTABLE" >
+			<set-variable value="#[406]" doc:name="Variable for httpStatus" doc:id="1b9e0822-f795-405c-9850-847e596c61fe" variableName="httpStatus"/>
+			<flow-ref doc:name="invoke common error handler" doc:id="8c1aaddd-9158-4475-9769-250ecb4ed292" name="common_error_handler" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate4" doc:id="8f756ddd-95f0-4360-847e-19ddc78149cf" type="APIKIT:UNSUPPORTED_MEDIA_TYPE" >
+			<set-variable value="#[415]" doc:name="Variable for httpStatus" doc:id="2bc4beda-23a0-48e5-8447-82abe1869b1e" variableName="httpStatus"/>
+			<flow-ref doc:name="invoke common error handler" doc:id="62f62a13-b6fb-451c-817b-1ca2c3138fc9" name="common_error_handler" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate5" doc:id="f68300a0-f44c-4e0f-854f-a9cf17d887be" type="APIKIT:NOT_IMPLEMENTED" >
+			<set-variable value="#[501]" doc:name="Variable for httpStatus" doc:id="0d38bac7-d4da-4fa9-b797-58b2fbf0aa61" variableName="httpStatus"/>
+			<flow-ref doc:name="invoke common error handler" doc:id="f8768520-1cf0-4966-8be1-e40781a1fa9a" name="common_error_handler" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="101f817f-b2cb-4feb-9b3c-d0b3df2c8e06" type="VALIDATION:ISSUE_TYPE_MISMATCH">
+			<set-variable value="#[400]" doc:name="Variable for httpStatus" doc:id="4961a35f-47f6-4ac9-958f-949eae27859b" variableName="httpStatus" />
+			<flow-ref doc:name="invoke common error handler" doc:id="be631266-61d7-44da-95c4-cf404522c008" name="common_error_handler" />
+		</on-error-propagate>
+	</error-handler>
+	<sub-flow name="common_error_handler" doc:id="4b6fbc8e-95be-4c65-a45b-d0a72a3bd80b" >
+		<ee:transform doc:name="error_response" doc:id="436173ba-1850-4c0f-98da-1c7fd3ec2828">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    statusCode: vars.httpStatus,
+    correlationId: correlationId,
+    errorType: error.errorType.identifier,
+    message: error.description
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="log-error-details" doc:id="e99fb51f-9bb5-4ca0-82f0-ed7b3aa1db1a" message="Correlation ID: #[vars.correlationId default correlationId] | Error Type: #[error.errorType.identifier] | Error Message: #[error.description]"/>
+	</sub-flow>
+</mule>

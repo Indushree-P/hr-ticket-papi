@@ -1,0 +1,10 @@
+%dw 2.0
+
+type auto_ee56a1f5_af8f_4ba7_86c2_12be2b11124b_Output_Variables_originalRequest = {
+  issueType: String, 
+  description: String, 
+  employeeId: String, 
+  department: String, 
+  _?: Any
+}
+

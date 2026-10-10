@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="process-ai-ticket-subflow" doc:id="49b2ee82-3e7a-4e20-9ee5-1bc2c2df7943" >
+		<ee:transform doc:name="prepare-ai-request" doc:id="d2f741de-1b5b-40e8-94d3-2e738d527185" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  issueType: vars.originalRequest.issueType,
+  description: vars.originalRequest.description
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="invoke-ai-sapi" doc:id="b4c257df-d9d0-4a1b-abaf-e3f15c017b08" config-ref="sapi-http-request-config" path="${paths.aiPriority}" />
+		<set-variable value="#[payload]" doc:name="store-ai-response" doc:id="5825da86-76c6-4673-8c1a-a4678a38f9ed" variableName="aiResponse" />
+		<choice doc:name="validate ai issue type" doc:id="0566eee1-64ed-4f75-be96-bd2f1b1021ce" >
+			<when expression="#[vars.aiResponse.isIssueTypeValid == false]">
+				<raise-error doc:name="Raise error for issuetype match" doc:id="89a9ef69-a020-46ea-9677-a247c12039a2" type="VALIDATION:ISSUE_TYPE_MISMATCH" description="Issue Type does not match the ticket description"/>
+			</when>
+		</choice>
+		<ee:transform doc:name="generate-ticket-details-tm" doc:id="9d5569d8-46e8-4bf1-84d4-1a5841788e31" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    ticketId: "TKT-" ++ upper((uuid() replace "-" with "")[0 to 5]),
+    employeeId: vars.originalRequest.employeeId,
+    department: vars.originalRequest.department,
+    issueType: vars.originalRequest.issueType,
+    description: vars.originalRequest.description,
+    sentiment: vars.aiResponse.sentiment,
+    priority: vars.aiResponse.priority
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="critical-ticket-subflow" doc:id="ee56a1f5-af8f-4ba7-86c2-12be2b11124b" >
+		<scatter-gather doc:name="critical-ticket-scatter-gather" doc:id="acad304e-f349-4dfd-b3d4-c04d24473ac2" >
+			<route >
+				<http:request method="POST" doc:name="invoke-db-sapi" doc:id="ebd89ebb-bd33-4e2e-9181-e2f9248eff97" config-ref="sapi-http-request-config" path="${paths.tickets}" />
+			</route>
+			<route >
+				<http:request method="POST" doc:name="invoke-alert-sapi" doc:id="35ae4748-8d0d-49fd-8e04-a281ddd5f774" config-ref="sapi-http-request-config" path="${paths.alerts}" />
+			</route>
+		</scatter-gather>
+	</sub-flow>
+	<sub-flow name="normal-ticket-subflow" doc:id="85696a9b-43a7-4efc-a630-5f24dbb7ad30" >
+		<http:request method="POST" doc:name="invoke-db-sapi" doc:id="755b712e-405a-4ce3-be38-22de07c2f60d" config-ref="sapi-http-request-config" path="${paths.tickets}" />
+	</sub-flow>
+</mule>

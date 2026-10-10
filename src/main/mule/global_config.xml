@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:request-config name="sapi-http-request-config" doc:name="HTTP Request configuration" doc:id="f4ce60df-4ac5-4479-937e-a1f220729c43" >
+		<http:request-connection host="${sapi.host}" port="${sapi.port}" protocol="HTTPS"/>
+	</http:request-config>
+	<vm:config name="audit-vm-config" doc:name="VM Config" doc:id="05ddd5fd-d144-46de-b6d8-2039ff85b98a">
+		<vm:queues >
+			<vm:queue queueName="audit-queue" maxOutstandingMessages="1000" />
+		</vm:queues>
+	</vm:config>
+	<file:config name="audit-file-config" doc:name="File Config" doc:id="3499fae4-eac5-4be1-a651-040c2d9d26fb" >
+		<file:connection workingDir="C:\Users\inp" />
+	</file:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="886b4c9b-846b-4df8-b676-17a4fcba3b53" file="config-properties-papi.yaml" />
+	<sftp:config name="SFTP_Config" doc:name="SFTP Config" doc:id="04bf4376-6a3b-4994-86f8-63f6a39d032c" >
+		<sftp:connection host="${sftp.host}" username="${sftp.user}" password="${secure::sftp.password}" port="${sftp.port}"/>
+	</sftp:config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="5ebb981b-ba53-4717-b04e-3dcedbf91002" file="secure-properties-papi.yaml" key="mulesoft123" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration doc:name="Configuration" doc:id="32613547-f226-4421-99ea-a21e1821efaf" defaultErrorHandler-ref="global_error_handler" />
+</mule>

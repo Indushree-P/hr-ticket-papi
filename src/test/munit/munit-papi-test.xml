@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="process-ticket-happy-path-test.xml" />
+	<munit:test name="critical-ticket-happy-path" doc:id="e941c493-8258-4153-b9b3-6079edc5d6b9" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock ai sapi" doc:id="5083beea-b6c9-4e57-98ac-34312fe5ab29" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-ai-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  sentiment: "NEGATIVE",&#10;  priority: "CRITICAL",&#10;  isIssueTypeValid: true&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock db sapi" doc:id="7948f7d6-e699-44ad-89bd-445d4dade933" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-db-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;  "status": "SUCCESS"&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock alert sapi" doc:id="2fb18a87-7a90-4a1d-ad06-454d20fb05aa" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-alert-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{"alertSent": true}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock vm publish" doc:id="57762b9b-73b5-4a53-859a-d725fe9b1359" processor="vm:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="publish-audit-event" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="400c2d78-3438-41ec-b768-1f228654867b" >
+				<munit:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  employeeId: "EMP001",&#10;  department: "HR",&#10;  issueType: "Payroll",&#10;  description: "Salary not credited this month"&#10;}]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\process-ticket:application\json:hr-ticket-papi-config" doc:id="7c62a0b7-6da0-44ae-be94-6a41bc277e40" name="post:\process-ticket:application\json:hr-ticket-papi-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert Status" doc:id="659362b1-9e66-4e2a-b974-402da445075a" expression="#[payload.status]" is='#[MunitTools::equalTo("TICKET_CREATED")]'/>
+			<munit-tools:assert-that doc:name="Assert priority" doc:id="19c5109b-b2c2-47eb-b610-cc2ddd98809c" is='#[MunitTools::equalTo("CRITICAL")]' expression="#[payload.priority]"/>
+			<munit-tools:verify-call doc:name="Verify Alert API Called" doc:id="86a14e1f-acea-4bde-b369-a26d51aea915" processor="http:request" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-alert-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			
+</munit:validation>
+</munit:test>
+	<munit:test name="Validation-error-path" doc:id="5eb7dffe-2f41-4f5a-95ed-2cc9ddd7462d" description="Test" expectedErrorType="VALIDATION:ISSUE_TYPE_MISMATCH">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock ai sapi" doc:id="6eb023a6-7506-4340-8b57-6fda7e7f10ca" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-ai-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  sentiment: "NEGATIVE",&#10;  priority: "CRITICAL",&#10;  isIssueTypeValid: false&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="4ac4030f-d445-4ab5-be98-cbb683cf307f" >
+				<munit:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  employeeId: "EMP001",&#10;  department: "HR",&#10;  issueType: "Battery",&#10;  description: "Salary not credited this month"&#10;}]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\process-ticket:application\json:hr-ticket-papi-config" doc:id="3817dfc1-663b-4a30-a052-045009861a98" name="post:\process-ticket:application\json:hr-ticket-papi-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert Status" doc:id="25aa1c01-782b-4e9d-89a4-3bb89a3618d8" expression="#[payload.status]" is='#[MunitTools::equalTo("TICKET_CREATED")]' />
+			<munit-tools:assert-that doc:name="Assert priority" doc:id="3c3f66cd-d241-4fef-9965-019187fd0524" expression="#[payload.priority]" is='#[MunitTools::equalTo("CRITICAL")]' />
+			<munit-tools:verify-call doc:name="Verify Alert API Called" doc:id="061ee9bd-2c76-4ca2-b2d4-c4b1289f8bbf" processor="http:request" times="1" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-alert-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="normal-ticket-happy-path" doc:id="7c21c297-8cc5-44f6-b860-af590223034e" description="Test" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock ai sapi" doc:id="3437b48e-d844-42f9-8f7b-9920ed144f03" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-ai-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  sentiment: "NEUTRAL",&#10;  priority: "NORMAL",&#10;  isIssueTypeValid: true&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock db sapi" doc:id="10b63fa5-e3bd-4d1b-89cc-61e9f686ac88" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-db-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;  "status": "SUCCESS"&#10;}]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock vm publish" doc:id="e8fe32ea-7acf-4081-8659-511ad4e7fab0" processor="vm:publish" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="publish-audit-event" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="66cf737b-d9f3-40e3-9e81-cdf43fbf522b" >
+				<munit:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  employeeId: "EMP001",&#10;  department: "HR",&#10;  issueType: "Payroll",&#10;  description: "Salary not credited this month"&#10;}]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to post:\process-ticket:application\json:hr-ticket-papi-config" doc:id="62bc4c6c-ea2b-4581-adaf-d6c7dc59f8a4" name="post:\process-ticket:application\json:hr-ticket-papi-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert Status" doc:id="bd55c9de-112e-4cd4-92e7-fc6fd477c3d2" expression="#[payload.status]" is='#[MunitTools::equalTo("TICKET_CREATED")]' />
+			<munit-tools:assert-that doc:name="Assert priority" doc:id="91d54a08-34ef-4bda-b21f-ac63281045b4" is='#[MunitTools::equalTo("NORMAL")]' expression="#[payload.priority]" />
+			<munit-tools:verify-call doc:name="Verify Alert API Called" doc:id="a39afd1c-554c-4663-82c7-c7bf3f46a585" processor="http:request" times="0" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="invoke-alert-sapi" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="Audit-Listener" doc:id="8486b901-74cb-43fe-a6c2-6e7b42dc4726" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="44a78862-d0ec-48b8-85d7-fe01eb362c37" processor="file:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="dc648453-3573-4d89-b494-e4278ee97e34" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="9a90dac9-1326-452d-8c1d-77c725a155d2" processor="sftp:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="207ece19-46da-4428-b7c4-206816696ccb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="ab0f12c1-1a45-4e34-8f58-a7260c75a77a" >
+				<munit:payload value='#[{&#10;            ticketId: "TKT1001",&#10;            employeeId: "EMP001",&#10;            department: "HR",&#10;            priority: "CRITICAL",&#10;            sentiment: "NEGATIVE",&#10;            description: "Salary not credited"&#10;        }]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="5ed5c80e-eefe-4ff2-8f93-a8abe8c33ce8" name="audit-listener-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="412fe310-8809-4575-ad3b-24792963a525" expression="#[payload]" is='#[MunitTools::containsString("TKT1001")]'/>
+			<munit-tools:verify-call doc:name="Verify call" doc:id="02b232d2-7d4b-44b0-b289-fc14adaf10dc" processor="file:write" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="dc648453-3573-4d89-b494-e4278ee97e34" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<munit-tools:verify-call doc:name="Verify call" doc:id="bbc98d4c-f34b-4d0b-9e32-33f2d1e3895f" processor="sftp:write" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="207ece19-46da-4428-b7c4-206816696ccb" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="munit-papi-api-main" doc:id="fb3915a7-3640-4c54-a24d-66a3806208ae" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="7f595d44-3acd-43e2-9930-69e43208d0f9" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="APIkit Router" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="9586c34b-33bb-42f8-a81b-64d33e7a8a9c" name="hr-ticket-papi-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="42fe05cb-0128-4f1d-9e98-1a2cc028c80b" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="munit-papi-apiconsole" doc:id="ae7aa7f8-ac7d-4c0f-b9a2-3ad054dbe5f1" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="e97defd0-fd84-4d6b-afb1-a21e7a2da8a4" processor="apikit:console" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="APIkit Console" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="4b4ca438-91c7-4df5-9d32-73d03a95ac8f" name="hr-ticket-papi-console" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="8fc0962c-8c31-4caf-af96-2b4eeb611daa" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

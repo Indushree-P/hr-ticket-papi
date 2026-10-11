@@ -4,7 +4,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd">
     <http:listener-config name="hr-ticket-papi-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8082" />
+        <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="hr-ticket-papi-config" api="resource::a800e192-e208-4c3c-9e10-977416e56127:hr-ticket-papi:1.0.1:raml:zip:hr-ticket-papi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="post:\process-ticket:application\json:hr-ticket-papi-config">

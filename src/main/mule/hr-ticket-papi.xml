@@ -57,7 +57,6 @@ payload.sentiment ++ "," ++
 payload.description ++ "\n"]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<file:write doc:name="LOCAL_WRITE" doc:id="dc648453-3573-4d89-b494-e4278ee97e34" path="${audit.path}" mode="APPEND" config-ref="audit-file-config"/>
-		<sftp:write doc:name="SFTP_WRITE" doc:id="207ece19-46da-4428-b7c4-206816696ccb" config-ref="SFTP_Config" path="/audit.csv" mode="APPEND"/>
+		<sftp:write doc:name="SFTP_WRITE" doc:id="207ece19-46da-4428-b7c4-206816696ccb" config-ref="SFTP_Config" path="${sftp.path}" mode="APPEND"/>
 	</flow>
 </mule>

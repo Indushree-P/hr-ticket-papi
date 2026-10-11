@@ -6,12 +6,9 @@ paths:
   aiPriority: /api/ai/priority
   tickets: /api/tickets
   alerts: /api/alerts
-
-audit:
-  workingDirectory: C:/Users/inp
-  path: audit.csv
   
 sftp:
   host: teksystems2.files.com
   port: "22"
   user: pindushree778@gmail.com
+  path: /audit.csv

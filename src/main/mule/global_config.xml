@@ -17,9 +17,6 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 			<vm:queue queueName="audit-queue" maxOutstandingMessages="1000" />
 		</vm:queues>
 	</vm:config>
-	<file:config name="audit-file-config" doc:name="File Config" doc:id="3499fae4-eac5-4be1-a651-040c2d9d26fb" >
-		<file:connection workingDir="C:\Users\inp" />
-	</file:config>
 	<configuration-properties doc:name="Configuration properties" doc:id="886b4c9b-846b-4df8-b676-17a4fcba3b53" file="config-properties-papi.yaml" />
 	<sftp:config name="SFTP_Config" doc:name="SFTP Config" doc:id="04bf4376-6a3b-4994-86f8-63f6a39d032c" >
 		<sftp:connection host="${sftp.host}" username="${sftp.user}" password="${secure::sftp.password}" port="${sftp.port}"/>

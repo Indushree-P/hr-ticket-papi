@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	</http:request-config>
 	<vm:config name="audit-vm-config" doc:name="VM Config" doc:id="05ddd5fd-d144-46de-b6d8-2039ff85b98a">
 		<vm:queues >
-			<vm:queue queueName="audit-queue" />
+			<vm:queue queueName="audit-queue" maxOutstandingMessages="1000" />
 		</vm:queues>
 	</vm:config>
 	<configuration-properties doc:name="Configuration properties" doc:id="886b4c9b-846b-4df8-b676-17a4fcba3b53" file="config-properties-papi.yaml" />

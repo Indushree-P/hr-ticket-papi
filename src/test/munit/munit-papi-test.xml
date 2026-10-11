@@ -7,6 +7,9 @@
 		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+		
+		<import file="global_config.xml"/>
+		
 	<munit:config name="process-ticket-happy-path-test.xml" />
 	<munit:test name="critical-ticket-happy-path" doc:id="e941c493-8258-4153-b9b3-6079edc5d6b9" description="Test">
 		<munit:behavior >
